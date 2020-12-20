@@ -1,6 +1,7 @@
 #include "leptjson.h"
 #include <assert.h>  /* assert() */
 #include <stdlib.h>  /* NULL, strtod() */
+#include <string.h>
 
 #define EXPECT(c, ch)       do { assert(*c->json == (ch)); c->json++; } while(0)
 
@@ -15,6 +16,7 @@ static void lept_parse_whitespace(lept_context* c) {
     c->json = p;
 }
 
+/*
 static int lept_parse_true(lept_context* c, lept_value* v) {
     EXPECT(c, 't');
     if (c->json[0] != 'r' || c->json[1] != 'u' || c->json[2] != 'e')
@@ -41,6 +43,27 @@ static int lept_parse_null(lept_context* c, lept_value* v) {
     v->type = LEPT_NULL;
     return LEPT_PARSE_OK;
 }
+*/
+
+static int lept_parse_literal(lept_context* c, lept_value* v, const char* literal) {
+    int len;
+    int i;
+    EXPECT(c, literal[0]);
+    len = strlen(literal);
+    for (i = 0; i < len-1; i++) {
+        if (c->json[i] != literal[i+1]) {
+            return LEPT_PARSE_INVALID_VALUE;
+        }
+    }
+    c->json += len-1;
+    switch (literal[0]) {
+        case 'n': v->type = LEPT_NULL; break;
+        case 't': v->type = LEPT_TRUE; break;
+        case 'f': v->type = LEPT_FALSE; break;
+        default: break;
+    }
+    return LEPT_PARSE_OK;
+}
 
 static int lept_parse_number(lept_context* c, lept_value* v) {
     char* end;
@@ -55,9 +78,9 @@ static int lept_parse_number(lept_context* c, lept_value* v) {
 
 static int lept_parse_value(lept_context* c, lept_value* v) {
     switch (*c->json) {
-        case 't':  return lept_parse_true(c, v);
-        case 'f':  return lept_parse_false(c, v);
-        case 'n':  return lept_parse_null(c, v);
+        case 't':  return lept_parse_literal(c, v, "true");
+        case 'f':  return lept_parse_literal(c, v, "false");
+        case 'n':  return lept_parse_literal(c, v, "null");
         default:   return lept_parse_number(c, v);
         case '\0': return LEPT_PARSE_EXPECT_VALUE;
     }
