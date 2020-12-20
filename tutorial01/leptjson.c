@@ -29,7 +29,7 @@ static int lept_parse_true(lept_context* c, lept_value* v) {
     if (c->json[0] != 'r' || c->json[1] != 'u' || c->json[2] != 'e')
         return LEPT_PARSE_INVALID_VALUE;
     c->json += 3;
-    v->type = LEPT_NULL;
+    v->type = LEPT_TRUE;
     return LEPT_PARSE_OK;
 }
 
@@ -38,7 +38,7 @@ static int lept_parse_false(lept_context* c, lept_value* v) {
     if (c->json[0] != 'a' || c->json[1] != 'l' || c->json[2] != 's' || c->json[3] != 'e')
         return LEPT_PARSE_INVALID_VALUE;
     c->json += 4;
-    v->type = LEPT_NULL;
+    v->type = LEPT_FALSE;
     return LEPT_PARSE_OK;
 }
 
@@ -63,6 +63,7 @@ int lept_parse(lept_value* v, const char* json) {
     if ((ret = lept_parse_value(&c, v)) == LEPT_PARSE_OK) {
         lept_parse_whitespace(&c);
         if ((ret = lept_parse_value(&c, v)) != LEPT_PARSE_EXPECT_VALUE) {
+            v->type = LEPT_NULL;
             ret = LEPT_PARSE_ROOT_NOT_SINGULAR;
         } else {
             ret = LEPT_PARSE_OK;
